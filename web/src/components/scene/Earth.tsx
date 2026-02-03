@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef, useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import { toJulianDay, getGST, degToRad } from "@/lib/time";
 import { SCENE_CONFIG } from "@/lib/config";
+import { ObjectLabel } from "./ObjectLabel";
 
 type SunDirUniform = THREE.IUniform<THREE.Vector3>;
 type UniformMap = Record<string, THREE.IUniform>;
@@ -15,6 +16,7 @@ type R3FShader = {
 };
 
 export function Earth({ sunLight, simDate }: { sunLight: React.RefObject<THREE.DirectionalLight | null>, simDate: Date }) {
+    const [hovered, setHovered] = useState(false);
     const earthRef = useRef<THREE.Mesh>(null!);
     const cloudRef = useRef<THREE.Mesh>(null!);
     const shaderRef = useRef<R3FShader | null>(null);
@@ -67,9 +69,19 @@ export function Earth({ sunLight, simDate }: { sunLight: React.RefObject<THREE.D
         }
     });
 
+    const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
+        event.stopPropagation();
+        setHovered(true);
+    };
+
+    const handlePointerOut = (event: ThreeEvent<PointerEvent>) => {
+        event.stopPropagation();
+        setHovered(false);
+    };
+
     return (
         <group>
-            <mesh ref={earthRef}>
+            <mesh ref={earthRef} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
                 <sphereGeometry args={[1, 128, 128]} />
                 <meshStandardMaterial
                     map={day}
@@ -97,14 +109,15 @@ export function Earth({ sunLight, simDate }: { sunLight: React.RefObject<THREE.D
                     }}
                 />
             </mesh>
-            <mesh ref={cloudRef} scale={1.01}>
+            <mesh ref={cloudRef} scale={1.01} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
                 <sphereGeometry args={[1, 128, 128]} />
                 <meshStandardMaterial map={clouds} transparent opacity={0.28} depthWrite={false} toneMapped={false} />
             </mesh>
-            <mesh scale={1.04}>
+            <mesh scale={1.04} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
                 <sphereGeometry args={[1, 128, 128]} />
                 <meshBasicMaterial color="#4da3ff" transparent opacity={0.07} side={THREE.BackSide} />
             </mesh>
+            <ObjectLabel name="Earth" visible={hovered} offset={[0, 1.4, 0]} />
         </group>
     );
 }

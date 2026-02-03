@@ -4,12 +4,14 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useTime } from "@/components/timeContext";
 import { getPlanetEci } from "@/lib/ephemeris";
 
 // Components
 import { Earth } from "@/components/scene/Earth";
+import { LunarNodes } from "@/components/scene/LunarNodes";
+import { ObjectLabel } from "@/components/scene/ObjectLabel";
 import { Planets } from "@/components/scene/Planets";
 import { ZodiacRing } from "@/components/scene/ZodiacRing";
 import { StarField } from "@/components/scene/StarField";
@@ -47,6 +49,7 @@ import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 
 function MoonWithLogic({ simDate }: { simDate: Date }) {
+    const [hovered, setHovered] = useState(false);
     const moonRef = useRef<THREE.Mesh>(null!);
     const [moonAlbedo] = useTexture(["/textures/moon/moon_albedo.jpg"], (t) => {
         (t as unknown as THREE.Texture[])[0].colorSpace = THREE.SRGBColorSpace;
@@ -64,9 +67,22 @@ function MoonWithLogic({ simDate }: { simDate: Date }) {
     });
 
     return (
-        <mesh ref={moonRef} castShadow receiveShadow>
+        <mesh
+            ref={moonRef}
+            castShadow
+            receiveShadow
+            onPointerOver={(event) => {
+                event.stopPropagation();
+                setHovered(true);
+            }}
+            onPointerOut={(event) => {
+                event.stopPropagation();
+                setHovered(false);
+            }}
+        >
             <sphereGeometry args={[0.27, 64, 64]} />
             <meshStandardMaterial map={moonAlbedo} bumpMap={moonAlbedo} bumpScale={0.03} roughness={0.95} />
+            <ObjectLabel name="Moon" visible={hovered} offset={[0, 0.6, 0]} />
         </mesh>
     );
 }
@@ -87,6 +103,7 @@ function SceneContent({ simDate }: { simDate: Date }) {
             <MoonWithLogic simDate={simDate} />
             <Planets simDate={simDate} sunLightRef={sunLightRef} />
             <ZodiacRing />
+            <LunarNodes simDate={simDate} />
 
             <EffectComposer>
                 <Bloom intensity={0.22} luminanceThreshold={0.75} luminanceSmoothing={0.15} />

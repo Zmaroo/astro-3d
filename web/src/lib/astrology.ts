@@ -1,11 +1,18 @@
 import * as THREE from "three";
-import { normalizeDegrees, radToDeg, degToRad, getLST, getGST } from "./time";
+import { normalizeDegrees, radToDeg, degToRad, getLST, getGST, toJulianDay } from "./time";
 import { getPlanetEci, getAllPlanetsEci, PlanetName } from "./ephemeris";
 
 export const ZODIAC_SIGNS = [
     "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
     "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
 ];
+
+export function getMeanLunarNodeLongitude(date: Date): number {
+    const jd = toJulianDay(date);
+    const T = (jd - 2451545.0) / 36525.0;
+    const omega = 125.04452 - 1934.136261 * T + 0.0020708 * T * T + (T * T * T) / 450000;
+    return normalizeDegrees(omega);
+}
 
 export interface PlanetData {
     name: string;

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
-import { PlanetName, getPlanetEci } from "@/lib/ephemeris";
-import { PlanetOrbit } from "./PlanetOrbit";
 import { SCENE_CONFIG } from "@/lib/config";
+import { PlanetName, getPlanetEci } from "@/lib/ephemeris";
+import { ObjectLabel } from "./ObjectLabel";
+import { PlanetOrbit } from "./PlanetOrbit";
 
 // Helper util (duplicated)
 function getVisualPosition(eci: THREE.Vector3): THREE.Vector3 {
@@ -17,6 +18,8 @@ function getVisualPosition(eci: THREE.Vector3): THREE.Vector3 {
 }
 
 export function Planets({ simDate, sunLightRef }: { simDate: Date, sunLightRef: React.RefObject<THREE.DirectionalLight | null> }) {
+    const [hoveredName, setHoveredName] = useState<string | null>(null);
+
     // Load Textures
     const textures = useTexture([
         "/textures/mercury/mercury-albedo.jpg",
@@ -56,16 +59,15 @@ export function Planets({ simDate, sunLightRef }: { simDate: Date, sunLightRef: 
             sunLightRef.current.position.copy(sunPos);
         }
 
-        // Sun Mesh (child 0 usually, or by name)
-        const sunMesh = groupRef.current.getObjectByName("Sun");
-        if (sunMesh) sunMesh.position.copy(sunPos);
+        const sunGroup = groupRef.current.getObjectByName("Sun");
+        if (sunGroup) sunGroup.position.copy(sunPos);
 
         // Planets
-        planetMeshes.forEach(p => {
-            const mesh = groupRef.current.getObjectByName(p.name);
-            if (mesh) {
+        planetMeshes.forEach((p) => {
+            const group = groupRef.current.getObjectByName(p.name);
+            if (group) {
                 const eci = getPlanetEci(simDate, p.name as PlanetName);
-                mesh.position.copy(getVisualPosition(eci));
+                group.position.copy(getVisualPosition(eci));
             }
         });
     });
@@ -73,36 +75,63 @@ export function Planets({ simDate, sunLightRef }: { simDate: Date, sunLightRef: 
     return (
         <group ref={groupRef}>
             {/* SUN */}
-            <mesh name="Sun">
-                <sphereGeometry args={[1.5, 32, 32]} />
-                <meshBasicMaterial map={textures[8]} />
-            </mesh>
-
-            {planetMeshes.map(p => (
-                <mesh key={p.name} name={p.name} scale={p.config.scale}>
-                    <sphereGeometry args={[1, 32, 32]} />
-                    <meshStandardMaterial map={p.tex} roughness={0.7} />
-                    {p.name === "Saturn" && (
-                        <mesh rotation={[Math.PI / 2.5, 0, 0]}>
-                            <ringGeometry args={[1.4, 2.2, 64]} />
-                            <meshStandardMaterial
-                                map={p.ringTex}
-                                side={THREE.DoubleSide}
-                                transparent
-                                opacity={0.8}
-                            />
-                        </mesh>
-                    )}
+            <group
+                name="Sun"
+                onPointerOver={(event) => {
+                    event.stopPropagation();
+                    setHoveredName("Sun");
+                }}
+                onPointerOut={(event) => {
+                    event.stopPropagation();
+                    setHoveredName(null);
+                }}
+            >
+                <mesh>
+                    <sphereGeometry args={[1.5, 32, 32]} />
+                    <meshBasicMaterial map={textures[8]} />
                 </mesh>
+                <ObjectLabel name="Sun" visible={hoveredName === "Sun"} offset={[0, 2, 0]} />
+            </group>
+
+            {planetMeshes.map((p) => (
+                <group
+                    key={p.name}
+                    name={p.name}
+                    onPointerOver={(event) => {
+                        event.stopPropagation();
+                        setHoveredName(p.name);
+                    }}
+                    onPointerOut={(event) => {
+                        event.stopPropagation();
+                        setHoveredName(null);
+                    }}
+                >
+                    <mesh scale={p.config.scale}>
+                        <sphereGeometry args={[1, 32, 32]} />
+                        <meshStandardMaterial map={p.tex} roughness={0.7} />
+                        {p.name === "Saturn" && (
+                            <mesh rotation={[Math.PI / 2.5, 0, 0]}>
+                                <ringGeometry args={[1.4, 2.2, 64]} />
+                                <meshStandardMaterial
+                                    map={p.ringTex}
+                                    side={THREE.DoubleSide}
+                                    transparent
+                                    opacity={0.8}
+                                />
+                            </mesh>
+                        )}
+                    </mesh>
+                    <ObjectLabel name={p.name} visible={hoveredName === p.name} />
+                </group>
             ))}
 
-            <PlanetOrbit name="Mercury" />
-            <PlanetOrbit name="Venus" />
-            <PlanetOrbit name="Mars" />
-            <PlanetOrbit name="Jupiter" />
-            <PlanetOrbit name="Saturn" />
-            <PlanetOrbit name="Uranus" />
-            <PlanetOrbit name="Neptune" />
+            <PlanetOrbit name="Mercury" simDate={simDate} />
+            <PlanetOrbit name="Venus" simDate={simDate} />
+            <PlanetOrbit name="Mars" simDate={simDate} />
+            <PlanetOrbit name="Jupiter" simDate={simDate} />
+            <PlanetOrbit name="Saturn" simDate={simDate} />
+            <PlanetOrbit name="Uranus" simDate={simDate} />
+            <PlanetOrbit name="Neptune" simDate={simDate} />
         </group>
     );
 }

@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import * as THREE from "three";
 import { Text } from "@react-three/drei";
 import { ZODIAC_SIGNS } from "@/lib/astrology";
 import { SCENE_CONFIG } from "@/lib/config";
+import { ObjectLabel } from "./ObjectLabel";
 
 export function ZodiacRing() {
+    const [hovered, setHovered] = useState(false);
     const radius = SCENE_CONFIG.zodiacRadius;
 
     // Empirical correction note:
@@ -20,32 +22,44 @@ export function ZodiacRing() {
     // This matches standard math (CCW from Top).
 
     return (
-        <group rotation={[Math.PI / 2, 0, 0]}>
-            {/* Ecliptic Plane Ring */}
-            <mesh>
-                <ringGeometry args={[radius - 0.2, radius + 0.2, 128]} />
-                <meshBasicMaterial color="#ffffff" opacity={0.15} transparent side={THREE.DoubleSide} />
-            </mesh>
-            {/* Signs */}
-            {ZODIAC_SIGNS.map((sign, i) => {
-                const angle = (i * 30 + 15) * (Math.PI / 180); // Center of sign
-                const x = radius * Math.cos(angle);
-                const z = -radius * Math.sin(angle); // Match standard CCW from Top
+        <group>
+            <group rotation={[Math.PI / 2, 0, 0]}>
+                {/* Ecliptic Plane Ring */}
+                <mesh
+                    onPointerOver={(event) => {
+                        event.stopPropagation();
+                        setHovered(true);
+                    }}
+                    onPointerOut={(event) => {
+                        event.stopPropagation();
+                        setHovered(false);
+                    }}
+                >
+                    <ringGeometry args={[radius - 0.2, radius + 0.2, 128]} />
+                    <meshBasicMaterial color="#ffffff" opacity={0.15} transparent side={THREE.DoubleSide} />
+                </mesh>
+                {/* Signs */}
+                {ZODIAC_SIGNS.map((sign, i) => {
+                    const angle = (i * 30 + 15) * (Math.PI / 180); // Center of sign
+                    const x = radius * Math.cos(angle);
+                    const z = -radius * Math.sin(angle); // Match standard CCW from Top
 
-                return (
-                    <Text
-                        key={sign}
-                        position={[x, 0, z]}
-                        rotation={[-Math.PI / 2, 0, angle + Math.PI / 2]} // Lay flat, face center
-                        fontSize={1.2}
-                        color="white"
-                        anchorX="center"
-                        anchorY="middle"
-                    >
-                        {sign}
-                    </Text>
-                );
-            })}
+                    return (
+                        <Text
+                            key={sign}
+                            position={[x, 0, z]}
+                            rotation={[-Math.PI / 2, 0, angle + Math.PI / 2]} // Lay flat, face center
+                            fontSize={1.2}
+                            color="white"
+                            anchorX="center"
+                            anchorY="middle"
+                        >
+                            {sign}
+                        </Text>
+                    );
+                })}
+            </group>
+            <ObjectLabel name="Zodiac Ring" visible={hovered} offset={[0, 2.5, 0]} />
         </group>
     );
 }
