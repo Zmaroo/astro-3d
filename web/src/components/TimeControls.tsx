@@ -68,14 +68,14 @@ export default function TimeControls() {
 
             <div className="flex items-center gap-2">
                 <span className="text-xs text-neutral-400 uppercase">Speed</span>
-                {[0.5, 1, 10, 100].map((s) => (
+                {[1, 100, 10000, 100000].map((s) => (
                     <button
                         key={s}
                         onClick={() => setSpeed(s)}
                         className={`px-2 py-1 rounded text-xs transition-colors ${speed === s ? "bg-white text-black font-bold" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
                             }`}
                     >
-                        {s}x
+                        {s < 1000 ? s + "x" : (s / 1000) + "k"}
                     </button>
                 ))}
             </div>
