@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { toJulianDay, degToRad, normalizeDegrees } from "./time";
 
-export type PlanetName = "Sun" | "Moon" | "Mercury" | "Venus" | "Mars" | "Jupiter" | "Saturn";
+export type PlanetName = "Sun" | "Moon" | "Mercury" | "Venus" | "Mars" | "Jupiter" | "Saturn" | "Uranus" | "Neptune";
 
 // Orbital elements (approximate, J2000)
 // N = longitude of the ascending node
@@ -77,6 +77,26 @@ function getElements(name: PlanetName, d: number): OrbitalElements {
             a: 9.55475,
             e: 0.055546 - 9.499e-9 * d,
             M: normalizeDegrees(316.9670 + 0.0334442282 * d)
+        };
+    }
+    if (name === "Uranus") {
+        return {
+            N: 74.006 + 1.3978e-5 * d,
+            i: 0.772556 + 1.1449e-8 * d,
+            w: 96.6612 + 3.0565e-5 * d,
+            a: 19.18171 - 1.55e-8 * d,
+            e: 0.047318 + 7.45e-9 * d,
+            M: normalizeDegrees(142.5905 + 0.011725806 * d)
+        };
+    }
+    if (name === "Neptune") {
+        return {
+            N: 131.7806 + 3.0173e-5 * d,
+            i: 1.767975 - 6.551e-9 * d,
+            w: 272.8461 - 6.027e-6 * d,
+            a: 30.05826 + 3.313e-8 * d,
+            e: 0.008606 + 2.15e-9 * d,
+            M: normalizeDegrees(260.2471 + 0.005995147 * d)
         };
     }
     // Default fallback
@@ -218,7 +238,7 @@ export function getPlanetEci(date: Date, name: PlanetName): THREE.Vector3 {
 }
 
 export function getAllPlanetsEci(date: Date): Record<PlanetName, THREE.Vector3> {
-    const names: PlanetName[] = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"];
+    const names: PlanetName[] = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"];
     const result = {} as Record<PlanetName, THREE.Vector3>;
 
     for (const name of names) {

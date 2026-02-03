@@ -20,7 +20,9 @@ export const INTERPRETATIONS = {
         Venus: "Love, beauty, and values.",
         Mars: "Action, desire, and aggression.",
         Jupiter: "Growth, abundance, and higher learning.",
-        Saturn: "Structure, limitation, and responsibility."
+        Saturn: "Structure, limitation, and responsibility.",
+        Uranus: "Change, innovation, and rebellion.",
+        Neptune: "Dreams, intuition, and illusion."
     },
     aspects: {
         Conjunction: "merged energies, intensifying both planets.",

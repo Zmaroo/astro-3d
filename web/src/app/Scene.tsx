@@ -106,14 +106,29 @@ function PlanetOrbit({ name }: { name: PlanetName }) {
 }
 
 function Planets({ simDate, sunLightRef }: { simDate: Date, sunLightRef: React.RefObject<THREE.DirectionalLight | null> }) {
+    // Load Textures
+    const textures = useTexture([
+        "/textures/mercury/mercury-albedo.jpg",
+        "/textures/venus/venus-atmosphere.jpg",
+        "/textures/mars/mars-albedo.jpg",
+        "/textures/jupiter/jupiter-albedo.jpg",
+        "/textures/saturn/saturn-albedo.jpg",
+        "/textures/uranus/uranus-albedo.jpg",
+        "/textures/neptune/neptune-albedo.jpg",
+        "/textures/saturn/saturn-ring.png",
+        "/textures/sun/sun-albedo.jpg",
+    ]);
+
     // Planet Data
     const planetMeshes = useMemo(() => [
-        { name: "Mercury", color: "#A5A5A5", scale: 0.4 },
-        { name: "Venus", color: "#E3BB76", scale: 0.9 },
-        { name: "Mars", color: "#DD4D22", scale: 0.5 },
-        { name: "Jupiter", color: "#D6A566", scale: 2.5 },
-        { name: "Saturn", color: "#F4D03F", scale: 2.2 },
-    ] as const, []);
+        { name: "Mercury", scale: 0.4, tex: textures[0] },
+        { name: "Venus", scale: 0.9, tex: textures[1] },
+        { name: "Mars", scale: 0.5, tex: textures[2] },
+        { name: "Jupiter", scale: 2.5, tex: textures[3] },
+        { name: "Saturn", scale: 2.2, tex: textures[4], ringTex: textures[7] },
+        { name: "Uranus", scale: 1.8, tex: textures[5] },
+        { name: "Neptune", scale: 1.8, tex: textures[6] },
+    ] as const, [textures]);
 
     // Refs for updating positions
     const groupRef = useRef<THREE.Group>(null!);
@@ -149,17 +164,22 @@ function Planets({ simDate, sunLightRef }: { simDate: Date, sunLightRef: React.R
             {/* SUN */}
             <mesh name="Sun">
                 <sphereGeometry args={[1.5, 32, 32]} />
-                <meshBasicMaterial color="#FFD700" />
+                <meshBasicMaterial map={textures[8]} />
             </mesh>
 
             {planetMeshes.map(p => (
                 <mesh key={p.name} name={p.name} scale={p.scale}>
                     <sphereGeometry args={[1, 32, 32]} />
-                    <meshStandardMaterial color={p.color} roughness={0.7} />
+                    <meshStandardMaterial map={p.tex} roughness={0.7} />
                     {p.name === "Saturn" && (
                         <mesh rotation={[Math.PI / 2.5, 0, 0]}>
                             <ringGeometry args={[1.4, 2.2, 64]} />
-                            <meshStandardMaterial color="#C5A46C" side={THREE.DoubleSide} transparent opacity={0.8} />
+                            <meshStandardMaterial
+                                map={p.ringTex}
+                                side={THREE.DoubleSide}
+                                transparent
+                                opacity={0.8}
+                            />
                         </mesh>
                     )}
                 </mesh>
@@ -170,6 +190,8 @@ function Planets({ simDate, sunLightRef }: { simDate: Date, sunLightRef: React.R
             <PlanetOrbit name="Mars" />
             <PlanetOrbit name="Jupiter" />
             <PlanetOrbit name="Saturn" />
+            <PlanetOrbit name="Uranus" />
+            <PlanetOrbit name="Neptune" />
         </group>
     );
 }
